@@ -99,4 +99,23 @@ class UserController extends Controller
 
         return redirect()->back()->with('success', 'Profile Successfully Updated');
     }
+
+    public function getPassword(){
+        return view('profile.password');
+    }
+
+    public function postPassword(Request $request){
+
+        $this->validate($request, [
+            'newpassword' => 'required|min:6|max:30|confirmed'
+        ]);
+
+        $user = auth()->user();
+
+        $user->update([
+            'password' => bcrypt($request->newpassword)
+        ]);
+
+        return redirect()->back()->with('success', 'Password has been Changed Successfully');
+    }
 }
