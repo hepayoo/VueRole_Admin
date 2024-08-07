@@ -4,17 +4,29 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Spatie\Permission\Models\Permission;
 
-class UserController extends Controller
+class PermissionController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
      * 
      */
+    protected $permission;
+
+     public function __construct(Permission $permission)
+     {
+         $this->permission = $permission;
+         $this->middleware('auth');
+ 
+     }
     public function index()
     {
         //
+        $permissions = $this->permission::all();
+
+        return view("permission.index", ['permissions' => $permissions]);
     }
 
     /**
@@ -25,6 +37,7 @@ class UserController extends Controller
     public function create()
     {
         //
+        return view("permission.create");
     }
 
     /**
@@ -36,6 +49,15 @@ class UserController extends Controller
     public function store(Request $request)
     {
         //
+        $this->validate($request, [
+            'name' => 'required'
+        ]);
+
+        $this->permission->create([
+            'name' => $request->name
+        ]);
+
+        return redirect()->route('permission.index')->with('success', 'Permission Created');
     }
 
     /**
@@ -66,7 +88,6 @@ class UserController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * 
-     * 
      */
     public function update(Request $request, $id)
     {
@@ -77,46 +98,10 @@ class UserController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * 
+     *
      */
     public function destroy($id)
     {
         //
-    }
-
-    public function profile(){
-        return view("profile.index");
-    }
-
-    public function postProfile(Request $request){
-        $user = auth()->user();
-        $this->validate($request, [
-            'name' => 'required',
-            'phone' => 'required',
-            'email' => 'required|email|unique:users,email,'.$user->id
-        ]);
-
-        $user->update($request->all());
-
-        return redirect()->back()->with('success', 'Profile Successfully Updated');
-    }
-
-    public function getPassword(){
-        return view('profile.password');
-    }
-
-    public function postPassword(Request $request){
-
-        $this->validate($request, [
-            'newpassword' => 'required|min:6|max:30|confirmed'
-        ]);
-
-        $user = auth()->user();
-
-        $user->update([
-            'password' => bcrypt($request->newpassword)
-        ]);
-
-        return redirect()->back()->with('success', 'Password has been Changed Successfully');
     }
 }
